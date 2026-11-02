@@ -24,10 +24,12 @@
 #include <cinttypes>
 #include <sstream>
 
-#ifndef _MSC_VER
-#include <ftw.h>
-#else
+#if defined(_WIN32)
+// nftw/ftw.h is POSIX only; MinGW does not ship it either, so the whole
+// Windows family uses std::filesystem.
 #include <filesystem>
+#else
+#include <ftw.h>
 #endif
 
 static std::string localPath;
@@ -45,7 +47,9 @@ void InitTempStorage() {
 }
 
 static void RemmoveAll(const std::string &path) {
-#ifndef _MSC_VER
+#if defined(_WIN32)
+  std::filesystem::remove_all(std::filesystem::u8path(path));
+#else
   nftw(
       path.data(),
       [](const char *pathName, const struct stat *, int, struct FTW *) -> int {
@@ -56,8 +60,6 @@ static void RemmoveAll(const std::string &path) {
         return 0;
       },
       10, FTW_DEPTH | FTW_MOUNT | FTW_PHYS);
-#else
-  std::filesystem::remove_all(std::filesystem::u8path(path));
 #endif
 }
 

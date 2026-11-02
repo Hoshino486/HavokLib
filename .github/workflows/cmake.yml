@@ -112,8 +112,27 @@ jobs:
   windows:
     runs-on: windows-2022
 
+    defaults:
+      run:
+        shell: pwsh
+
     steps:
       - uses: actions/checkout@v4
+
+      # The runner ships MinGW on PATH but no MSVC environment, so a bare
+      # `cmake -G Ninja` silently picks gcc 14 and then fails in code that is
+      # written for one of the two real targets (MSVC define or POSIX).
+      # Entering the VS developer shell fixes the compiler selection.
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Show toolchain
+        run: |
+          cmake --version | Select-Object -First 1
+          ninja --version
+          (Get-Command cl.exe).Source
 
       - name: Configure
         run: |

@@ -190,7 +190,10 @@ void ZIPExtactContext::FinishFile(bool final) {
 }
 
 inline std::tm localtime(std::time_t t) {
-#ifdef _MSC_VER
+#if defined(_WIN32)
+  // MSVC and MinGW both expose only the thread unsafe std::localtime, so the
+  // value is copied out right away. MinGW has no localtime_r in the global
+  // namespace, which is why the POSIX path is Windows gated.
   return *std::localtime(&t);
 #else
   std::tm temp;
