@@ -33,9 +33,15 @@ enum class Lang : int { Auto = 0, Chinese = 1, English = 2 };
 
 PC_EXTERN int &LangState();
 
+// True once the language was set explicitly (--language/-l, HAVOK_LANG,
+// HK_LANG or the config file). The default compile time language does not
+// count, so a value read from <common><language> may still override it.
+PC_EXTERN bool &LangPinned();
+
 inline void SetLanguage(Lang lang) {
   if (lang != Lang::Auto) {
     LangState() = static_cast<int>(lang);
+    LangPinned() = true;
   }
 }
 

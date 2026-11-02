@@ -486,6 +486,11 @@ int &LangState() {
   return state;
 }
 
+bool &LangPinned() {
+  static bool pinned = false;
+  return pinned;
+}
+
 Lang ParseLanguage(std::string_view name) {
   auto lower = [](std::string_view input) {
     std::string out;
@@ -528,7 +533,10 @@ Lang ParseLanguage(std::string_view name) {
 }
 
 void InitFromEnvironment() {
-  static const char *const vars[] = {"HAVOK_LANG", "HK_LANG", "LANG", nullptr};
+  // LANG is a POSIX locale (zh_CN.UTF-8, en_US.UTF-8); on Windows it is
+  // normally unset, so the dedicated variables are tried first and the generic
+  // one last.
+  static const char *const vars[] = {"HAVOK_LANG", "HK_LANG", nullptr};
 
   for (size_t i = 0; vars[i]; i++) {
     const char *value = std::getenv(vars[i]);

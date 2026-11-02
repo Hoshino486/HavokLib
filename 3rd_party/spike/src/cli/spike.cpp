@@ -554,6 +554,29 @@ int Main(int argc, TCHAR *argv[]) {
     argc = write;
   }
 
+  // The banner and module help are printed before APPContext loads the full
+  // config, so the saved <common><language> value must be picked up here. Only
+  // that single node is read; the reflected settings tree still comes later.
+  // Precedence: HAVOK_LANG / --language already set a definite language, and
+  // the file is the lowest priority source, so it only applies when nothing
+  // else decided.
+  if (!es::i18n::LangPinned()) {
+    try {
+      pugi::xml_document doc = XMLFromFile(appFolder + appName + ".config");
+
+      if (auto common = doc.child("common"); common) {
+        if (auto langNode = common.child("language"); langNode) {
+          if (auto lang = es::i18n::ParseLanguage(langNode.text().as_string());
+              lang != es::i18n::Lang::Auto) {
+            es::i18n::SetLanguage(lang);
+          }
+        }
+      }
+    } catch (const std::exception &) {
+      // Missing or malformed config: keep the current language.
+    }
+  }
+
   if (argc < 2) {
     printwarning(I18N("未提供任何参数，进入扫描模式并生成配置文件。",
                       "No parameters provided, entering scan mode and "
