@@ -1,4 +1,4 @@
-// 鏈枃浠剁敱绋嬪簭鑷姩鐢熸垚锛岃鍕挎墜鍔ㄤ慨鏀广€?
+// 本文件由程序自动生成，请勿手动修改。
 #pragma once
 #include "hka_animated_reference_frame.inl"
 namespace clgen::hkaDefaultAnimatedReferenceFrame {

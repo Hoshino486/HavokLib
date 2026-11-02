@@ -2,14 +2,19 @@ name: build
 
 on:
   push:
+  pull_request:
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
-  SK_VERSION: nover
-  PY_VERSION: nover
 
 jobs:
-  ubuntu-test:
+  # ---------------------------------------------------------------------------
+  # Linux: library + toolset + python module + unit tests.
+  # 3rd_party/spike is a regular directory in this fork (the upstream submodule
+  # was folded in), so checkout must NOT be asked to recurse.
+  # ---------------------------------------------------------------------------
+  linux:
     runs-on: ubuntu-22.04
 
     env:
@@ -22,140 +27,170 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Configure stuff
+      - name: Install dependencies
         run: |
-          sudo apt install g++-12
-          mkdir ${{github.workspace}}/build
-          cd ${{github.workspace}}/build
-          cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DUSE_GCOV=TRUE -DTOOLSET=FALSE -DODR_TEST=TRUE ..
+          sudo apt-get update
+          sudo apt-get install -y g++-12 ninja-build cmake \
+            python3-dev python3-setuptools
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/dist \
+            -DCMAKE_INSTALL_RPATH='$ORIGIN;$ORIGIN/../modules;$ORIGIN/../lib'
 
       - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build .
+        run: cmake --build build --parallel 4
 
       - name: Test
-        working-directory: ${{github.workspace}}/build
+        working-directory: ${{ github.workspace }}/build
         run: ctest --output-on-failure
 
-      - name: Install coverage parser
-        working-directory: ${{github.workspace}}
+      # The whole point of this fork: Chinese by default, English on demand.
+      - name: Verify localization
         run: |
-          sudo apt install python3-setuptools python3-idna python3-requests python3-urllib3
-          git clone https://github.com/PredatorCZ/cpp-coveralls.git
-          pushd cpp-coveralls
-          sudo python3 setup.py install
-          popd
-
-      - name: Upload coverage report
-        working-directory: ${{github.workspace}}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.CoverallsToken }}
-          COVERALLS_SERVICE_NAME: github-actions-ci
-        run: >
-          coveralls --gcov gcov-12
-          -E ".*/build/.*.[ch]((pp)|(c)|(xx))?$"
-          -e test
-          -e 3rd_party
-          -e toolset
-          --gcov-options '\-lp' > /dev/null
-
-  toolset:
-    runs-on: ubuntu-22.04
-
-    env:
-      CC: gcc-12
-      CXX: g++-12
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Configure stuff
-        run: |
-          sudo apt install g++-12
-          mkdir ${{github.workspace}}/build
-          cd ${{github.workspace}}/build
-          cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/tmp ..
-          echo "SK_VERSION=$(cat toolset/version)" >> $GITHUB_ENV
-          echo "PY_VERSION=$(cat python/version_havokpy)" >> $GITHUB_ENV
-
-      - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . -j 6
+          set -e
+          exe=$(find build -name havok_toolset -type f -perm -u+x | head -n 1)
+          echo "binary: $exe"
+          "$exe" hk_to_gltf --help        > help_zh.txt 2>&1 || true
+          "$exe" hk_to_gltf --help -l en  > help_en.txt 2>&1 || true
+          echo "--- default (zh) ---"; head -4 help_zh.txt
+          echo "--- -l en ---";      head -4 help_en.txt
+          grep -q '选项:'   help_zh.txt
+          grep -q 'Options:' help_en.txt
+          echo "localization OK"
 
       - name: Install
-        working-directory: ${{github.workspace}}/build
-        run: |
-          cmake --build . --target install
-          cd ../tmp
-          mv ../LICENSE .
-          mv ../toolset/README.md .
-          tar -cvaf ../HavokToolset-v${{env.SK_VERSION}}-linux-amd64.tar.xz --exclude python_module .
-          cd python_module/lib
-          tar -cvaf ${{github.workspace}}/HavokPy-v${{env.PY_VERSION}}-linux-amd64.tar.xz .
+        run: cmake --build build --target install
 
-      - name: Upload Artifacts
+      # Install layout on UNIX: <prefix>/havok_toolset, <prefix>/modules/*.spk
+      - name: Verify installed layout
+        run: |
+          set -e
+          find ${{ github.workspace }}/dist -maxdepth 3 | head -40
+          exe=$(find ${{ github.workspace }}/dist -name havok_toolset -type f | head -n 1)
+          test -n "$exe"
+          test -n "$(find ${{ github.workspace }}/dist -name '*.spk' | head -n 1)"
+          out=$("$exe" hk_to_gltf --help -l en 2>&1 | head -6)
+          echo "$out"
+          echo "$out" | grep -q 'Options:'
+          echo "installed toolset OK"
+
+      - name: Pack toolset
+        run: |
+          set -e
+          cd ${{ github.workspace }}/dist
+          cp ../LICENSE . 2>/dev/null || true
+          cp ../toolset/README.md . 2>/dev/null || true
+          cp ../toolset/README.en.md . 2>/dev/null || true
+          SK_VERSION=$(cat ${{ github.workspace }}/build/toolset/version 2>/dev/null || echo nover)
+          echo "SK_VERSION=$SK_VERSION" >> $GITHUB_ENV
+          tar -cvaf ../HavokToolset-${SK_VERSION}-linux-amd64.tar.xz \
+            --exclude python_module .
+
+      - name: Upload toolset
         uses: actions/upload-artifact@v4
         with:
           name: HavokToolset-linux-amd64
-          path: ${{github.workspace}}/HavokToolset-v${{env.SK_VERSION}}-linux-amd64.tar.xz
+          path: ${{ github.workspace }}/HavokToolset-*-linux-amd64.tar.xz
           retention-days: 5
 
-      - name: Upload Python Artifacts
+      - name: Upload python module
         uses: actions/upload-artifact@v4
         with:
           name: HavokPy-linux-amd64
-          path: ${{github.workspace}}/HavokPy-v${{env.PY_VERSION}}-linux-amd64.tar.xz
+          path: ${{ github.workspace }}/dist/python_module/lib
           retention-days: 5
 
-  build-widle:
+  # ---------------------------------------------------------------------------
+  # Windows: MSVC x64 with Ninja - the exact toolchain combination this fork was
+  # ported to and verified with (see build.cmd). Upstream used clang; that is no
+  # longer required because the CMake flag sets are now compiler agnostic.
+  # ---------------------------------------------------------------------------
+  windows:
     runs-on: windows-2022
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
 
-      - name: Configure stuff
+      - name: Configure
         run: |
-          choco install ninja
-          mkdir ${{github.workspace}}/build
-          cd ${{github.workspace}}/build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{github.workspace}} ..
-          echo "SK_VERSION=$(Get-Content -Path ./toolset/version)" >> $env:GITHUB_ENV
-          echo "PY_VERSION=$(Get-Content -Path ./python/version_havokpy)" >> $env:GITHUB_ENV
-        env:
-          CC: clang
-          CXX: clang++
+          cmake -S . -B build -G Ninja `
+            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . -j 6
+        run: |
+          cmake --build build --parallel 4
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test
+        working-directory: ${{ github.workspace }}/build
+        run: |
+          ctest --output-on-failure
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify localization
+        run: |
+          $exe = (Get-ChildItem -Recurse -Filter havok_toolset.exe build |
+                  Where-Object { $_.FullName -notmatch 'CMakeFiles' } |
+                  Select-Object -First 1).FullName
+          if (-not $exe) { throw "havok_toolset.exe not built" }
+          Write-Host "binary: $exe"
+          Write-Host "--- default (zh) ---"
+          & $exe hk_to_gltf --help       2>&1 | Select-Object -First 4
+          Write-Host "--- -l en ---"
+          & $exe hk_to_gltf --help -l en 2>&1 | Select-Object -First 4
+          $zh = (& $exe hk_to_gltf --help        2>&1 | Out-String)
+          $en = (& $exe hk_to_gltf --help -l en  2>&1 | Out-String)
+          if ($zh -notmatch '选项:' -or $en -notmatch 'Options:') {
+            throw "localization check failed"
+          }
+          Write-Host "localization OK"
 
       - name: Install
         run: |
           cmake --build build --target install
-          copy LICENSE bin/LICENSE
-          copy toolset/README.md bin/README.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Upload Artifacts
+      # Install layout on Windows: <prefix>/bin/havok_toolset.exe,
+      # <prefix>/bin/modules/*.spk, <prefix>/python_module/lib/havokpy.pyd
+      - name: Verify installed layout
+        run: |
+          Get-ChildItem -Recurse "${{ github.workspace }}/dist" |
+            Select-Object -ExpandProperty FullName
+          $toolset = "${{ github.workspace }}/dist/bin/havok_toolset.exe"
+          if (-not (Test-Path $toolset)) { throw "installed toolset missing" }
+          $spk = Get-ChildItem -Recurse -Filter *.spk "${{ github.workspace }}/dist" |
+                   Select-Object -First 1
+          if (-not $spk) { throw "installed module missing" }
+          $out = (& $toolset hk_to_gltf --help -l en 2>&1 | Out-String)
+          if ($out -notmatch 'Options:') { throw "installed toolset broken" }
+          Write-Host "installed toolset OK"
+
+      - name: Pack
+        run: |
+          $ver = "nover"
+          $vf = "${{ github.workspace }}/build/toolset/version"
+          if (Test-Path $vf) { $ver = (Get-Content $vf -Raw).Trim() }
+          "SK_VERSION=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Copy-Item LICENSE              dist/bin/LICENSE       -ErrorAction SilentlyContinue
+          Copy-Item toolset/README.md    dist/bin/README.md     -ErrorAction SilentlyContinue
+          Copy-Item toolset/README.en.md dist/bin/README.en.md  -ErrorAction SilentlyContinue
+
+      - name: Upload toolset
         uses: actions/upload-artifact@v4
         with:
-          name: HavokToolset-v${{env.SK_VERSION}}-win64
-          path: ${{github.workspace}}/bin
+          name: HavokToolset-win64
+          path: ${{ github.workspace }}/dist/bin
           retention-days: 5
 
-      - name: Upload Python Artifacts
+      - name: Upload python module
         uses: actions/upload-artifact@v4
         with:
-          name: HavokPy-v${{env.PY_VERSION}}-win64
-          path: ${{github.workspace}}/python_module/lib
+          name: HavokPy-win64
+          path: ${{ github.workspace }}/dist/python_module/lib
           retention-days: 5

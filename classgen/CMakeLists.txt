@@ -1,8 +1,18 @@
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 function(build_classes filename)
-    execute_process(COMMAND ${Python3_EXECUTABLE} ${filename}.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE VAR)
-    file(WRITE ../source/packfile/${filename}.inl "${VAR}")
+    # The generators print UTF-8 (they emit a Chinese banner). Capturing that
+    # through execute_process would decode it with the host code page (cp936 on
+    # a Chinese Windows) and mangle it, so run_classgen.py writes the .inl
+    # itself, with the encoding stated in Python.
+    execute_process(
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/run_classgen.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/${filename}.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/../source/packfile/${filename}.inl
+        RESULT_VARIABLE result)
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "classgen failed for ${filename} (exit ${result})")
+    endif()
 endfunction()
 
 build_classes(hk_base)

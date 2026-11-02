@@ -8,6 +8,7 @@ on:
       - completed
     branches:
       - master
+  workflow_dispatch:
 
 env:
   SK_VERSION: nover
@@ -15,58 +16,83 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      contents: write
     steps:
-    - name: Download artifacts
-      uses: dawidd6/action-download-artifact@v6
-      with:
-        workflow: cmake.yml
-        branch: ${{ github.event.release.target_commitish }}
-        workflow_conclusion: success
+      # Pull the artifacts produced by the build workflow that just finished.
+      - name: Download artifacts
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: cmake.yml
+          branch: ${{ github.event.workflow_run.head_branch }}
+          workflow_conclusion: success
 
-    - name: Import signature key
-      uses: crazy-max/ghaction-import-gpg@v6
-      with:
-        gpg_private_key: ${{ secrets.GHA_GPG_KEY }}
-        passphrase: ${{ secrets.GHA_GPG_PWD }}
+      - name: Download artifacts (manual run)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: cmake.yml
+          branch: master
+          workflow_conclusion: success
 
-    - name: Move artifacts to workspace
-      run: |
-        for file in *; do
-          if [ -d $file ]; then
-              pushd $file
-              if [[ $file == *-win64 ]]; then
-                7z a ../$file.7z .
-                gpg --detach-sign ../$file.7z
-              else
-                BASENAME=$(basename *.tar.xz .tar.xz)
-                echo "SK_VERSION=$(echo ${BASENAME} | cut -d'-' -f 2)" >> $GITHUB_ENV
-                mv *.tar.xz ..
-                gpg --detach-sign ../*.tar.xz
-              fi
-              popd
-          fi
-        done
+      # Signing keys are optional: without the secrets the job still publishes
+      # unsigned archives instead of failing.
+      - name: Import signature key
+        if: ${{ env.GHA_GPG_KEY != '' }}
+        uses: crazy-max/ghaction-import-gpg@v6
+        env:
+          GHA_GPG_KEY: ${{ secrets.GHA_GPG_KEY }}
+        with:
+          gpg_private_key: ${{ secrets.GHA_GPG_KEY }}
+          passphrase: ${{ secrets.GHA_GPG_PWD }}
 
-    - uses: actions/checkout@v4
-      with:
-        path: repo
+      - name: Move artifacts to workspace
+        run: |
+          set -e
+          shopt -s nullglob
+          for file in *; do
+            [ -d "$file" ] || continue
+            echo "packing $file"
+            if [[ $file == *-win64 ]]; then
+              7z a "$file.7z" "./$file/." > /dev/null
+              [ -n "${GHA_GPG_KEY:-}" ] && gpg --detach-sign --batch --yes "$file.7z"
+            else
+              for t in "$file"/*.tar.xz; do
+                base=$(basename "$t" .tar.xz)
+                echo "SK_VERSION=$(echo "$base" | cut -d'-' -f 2)" >> "$GITHUB_ENV"
+                mv "$t" .
+                [ -n "${GHA_GPG_KEY:-}" ] && gpg --detach-sign --batch --yes "./$base.tar.xz"
+              done
+            fi
+          done
+          ls -la
 
-    - name: Delete release
-      working-directory: repo
-      run: gh release delete nightly --cleanup-tag
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          path: repo
 
-    - name: Wait a sec
-      run: sleep 2
+      - name: Delete previous nightly
+        working-directory: repo
+        continue-on-error: true
+        run: gh release delete nightly --cleanup-tag --yes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Release them
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          *.xz
-          *.7z
-          *.sig
-        tag_name: nightly
-        name: HavokToolset ${{env.SK_VERSION}} (nightly)
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.tar.xz
+            *.7z
+            *.sig
+          tag_name: nightly
+          name: HavokToolset ${{ env.SK_VERSION }} (nightly)
+          body: |
+            简体中文版 Havok 工具集 / Simplified Chinese Havok toolset.
+
+            Every binary defaults to Chinese; switch with `--language en`,
+            `HAVOK_LANG=en`, or `<common><language>en</language>` in
+            `havok_toolset.config`.
+          fail_on_unmatched_files: false
