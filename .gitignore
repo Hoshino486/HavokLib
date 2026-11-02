@@ -13,3 +13,6 @@ bin/
 
 commit_msg.txt
 *.log
+
+ci_log.py
+ci_status.py
