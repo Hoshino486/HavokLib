@@ -16,3 +16,13 @@ commit_msg.txt
 
 ci_log.py
 ci_status.py
+
+artifacts/
+release_out/
+download_test/
+test_rel/
+dl2/
+RELEASE_NOTES_*.md
+ci_pack.py
+ci_artifacts.py
+ci_release.py
