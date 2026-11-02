@@ -117,9 +117,10 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S . -B build -G Ninja `
-            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
-            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist"
+          # Single line on purpose: a PowerShell backtick continuation mangles
+          # the arguments and injects the literal text "$env:BUILD_TYPE" into
+          # the generated ninja rules.
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build
