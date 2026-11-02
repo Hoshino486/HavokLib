@@ -29,7 +29,35 @@ option(CLI "" ${TOOLSET})
 option(GLTF "" ${TOOLSET})
 
 set(CMAKE_CXX_STANDARD 20)
-add_compile_options(-Wall -Wextra)
+
+# ~~~ Compiler flavour flags ~~~
+# The upstream project is written against GCC/Clang. We translate the flag sets
+# here so the tree also configures and builds with MSVC (cl.exe).
+if(MSVC)
+  set(HK_WARN_FLAGS /W3)
+  # -fvisibility=hidden has no MSVC equivalent (that is the default for DLLs)
+  set(HK_VISIBILITY_FLAGS )
+  # -msse4: x64 MSVC has SSE2 baseline, /arch:AVX enables the rest of the
+  # SIMD helper paths used by Spike.
+  set(HK_SIMD_FLAGS /arch:AVX)
+  # -Wno-invalid-offsetof / -fno-rtti: RTTI stays on for MSVC builds.
+  set(HK_CXX_ONLY_FLAGS )
+  # -Wl,/stack:8388608 -> /STACK:8388608
+  set(HK_STACK_LINK_FLAGS /STACK:8388608)
+  set(HK_RDYNAMIC_FLAGS )
+  add_compile_options(/utf-8 /bigobj /Zc:__cplusplus /Zc:preprocessor
+                      /permissive- /wd4267 /wd4244 /wd4996 /wd4100 /wd4189)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN)
+else()
+  set(HK_WARN_FLAGS -Wall -Wextra)
+  set(HK_VISIBILITY_FLAGS -fvisibility=hidden)
+  set(HK_SIMD_FLAGS -msse4)
+  set(HK_CXX_ONLY_FLAGS -Wno-invalid-offsetof -fno-rtti)
+  set(HK_STACK_LINK_FLAGS )
+  set(HK_RDYNAMIC_FLAGS -rdynamic)
+endif()
+
+add_compile_options(${HK_WARN_FLAGS})
 
 if(TOOLSET)
   set(EXPOSE_SYMBOLS spike;gltf;havok;pugixml)

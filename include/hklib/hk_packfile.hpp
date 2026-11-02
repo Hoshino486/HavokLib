@@ -43,6 +43,6 @@ struct HK_EXTERN IhkPackFile {
   void ToXML(const std::string &fileName, hkToolset toolset);
   void ToXML(pugi::xml_node node, hkToolset toolset);
 
-  // rule must be as hex, ie. 0x4101
+  // 规则必须写成十六进制，例如 0x4101
   void ToPackFile(const std::string &fileName, hkToolset toolset, uint32 rule);
 };

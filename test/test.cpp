@@ -17,6 +17,7 @@
 
 #include "pugixml.hpp"
 #include "spike/master_printer.hpp"
+#include "spike/util/i18n.hpp"
 
 static const std::string_view compiledFlags[] = {
     "[4001].hkx", "[4011].hkx", "[4101].hkx", "[4111].hkx",
@@ -39,6 +40,7 @@ static const std::string_view versions[] = {
 
 int main() {
   es::print::AddPrinterFunction(es::Print);
+  es::i18n::InitFromEnvironment();
 
   TEST_CASES(int resultVar, TEST_FUNC(test_skeleton),
              TEST_FUNC(test_defaultmotion), TEST_FUNC(test_spline),

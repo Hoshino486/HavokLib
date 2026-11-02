@@ -26,20 +26,19 @@ struct hkxHeader;
 
 struct hkxHeaderlayout {
   /*
-  This is basically pointer size, so 4 bytes for x86 and 8 bytes for x64
-  architectures
+  这里实际上就是指针大小：x86 架构为 4 字节，x64 架构为 8 字节。
   */
   uint8 bytesInPointer, littleEndian,
       /*
-      derived classes start instead of base class end padding, rather after,
-      very usefull thing this technique is applied only on non POD classes eg:
-      struct Base {}; we must create base class  for A or A will be handled as
-      POD class, hence compiler will have forbidden access to padding
+      派生类的起始位置取代了基类末尾的填充，也就是把填充放到后面之后。
+      这项技术只对非 POD 类生效，这一点非常关键，例如：
+      struct Base {}; 我们必须为 A 创建一个基类，否则 A 会被当作 POD 类处理，
+      这样编译器就会禁止访问填充区域。
         struct A : Base {int i; char c;};
         sizeof (A) == 8
         struct B : A {short s;};
         sizeof (B) == 8
-      so compiled struct looks like this:
+      因此编译后的结构体布局是这样的：
         struct B
         {
                 int i;
@@ -47,7 +46,7 @@ struct hkxHeaderlayout {
                 char pad;
                 short s;
         }
-      instead of:
+      而不是：
         struct B
         {
                 int i;
@@ -56,17 +55,19 @@ struct hkxHeaderlayout {
                 short s;
                 char pad[2];
         }
-      this technique is used by many compilers like gcc, clang, mac compilers,
-      this is not used by MSVC, or any MS like compilers
+      这项技术被 gcc、clang、Mac 编译器等诸多编译器采用，
+      MSVC 以及任何 MS 系编译器都没有采用。
       */
       reusePaddingOptimization,
       /*
-      empty base class have sizeof only 1 byte, however this byte is not passed
-      to dervied classes, when optimization is applied eg: struct A {};
-      sizeof(A) == 1 struct B:A{int i;}; sizeof(B) == 4 this does not apply if A
-      is member of struct, in that case, it will be handled as char? thankfully
-      this technique doesn't use sn and gcc v2 compilers (I cannot event find SN
-      compiler reference, lol)
+      空基类的大小只有 1 字节，但启用优化后这个字节不会被传递给派生类，例如：
+      struct A {};
+      sizeof(A) == 1
+      struct B : A {int i;};
+      sizeof(B) == 4
+      如果 A 是结构体的成员而不是基类，这条规则就不适用，此时它会按 char 处理？
+      好在 sn 与 gcc v2 编译器都没有使用这项技术（我甚至连 SN 编译器的资料都
+      找不到，笑）。
       */
       emptyBaseClassOptimization;
 };

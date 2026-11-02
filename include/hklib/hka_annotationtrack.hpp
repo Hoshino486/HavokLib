@@ -19,7 +19,7 @@
 #include "hk_base.hpp"
 #include "spike/uni/list.hpp"
 
-// event trigger
+// 事件触发器
 struct hkaAnnotationFrame {
   float time;
   std::string_view text;

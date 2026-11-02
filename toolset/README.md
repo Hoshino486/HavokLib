@@ -1,211 +1,210 @@
 
-<h1 align="center">Havok Toolset</h1>
+<h1 align="center">Havok 工具集</h1>
 
 <p align="center">
-    Havok Toolset is a collection of conversion tools under HavokLib.
+    Havok 工具集是 HavokLib 下的一组转换工具。
 </p>
 
 <p align="center">
-    This toolset runs on Spike foundation.
+    本工具集基于 Spike 框架运行。
 </p>
 
 <p align="center">
-    Head to this
-    <b><a href="https://github.com/PredatorCZ/Spike/wiki/Spike">Wiki</a></b>
-    for more information on how to effectively use it.
+    想了解如何高效使用，请看
+    <b><a href="https://github.com/PredatorCZ/Spike/wiki/Spike">Wiki</a></b>。
 </p>
 
 <p align="center">
-<b><a href="https://github.com/PredatorCZ/RevilLib/releases">Latest Release</a></b>
-</p><h2>Module list</h2>
+<b><a href="https://github.com/PredatorCZ/RevilLib/releases">最新发行版</a></b>
+</p><h2>模块列表</h2>
 <ul>
 <li><a href="#Havok2GLTF">Havok2GLTF</a></li>
 </ul>
 
 ## Havok2GLTF
 
-### Module command: hk_to_gltf
+### 模块命令: hk_to_gltf
 
-Converts Havok data into GLTF.
+把 Havok 数据转换为 GLTF。
 
-Supports animation and skeleton data.
+支持动画与骨骼数据。
 
-### Input file patterns: `.hkx$`, `.hka$` or user specified
+### 输入文件规则: `.hkx$`、`.hka$` 或用户指定
 
-### Settings
+### 设置
 
 - **extension-patterns**
 
-  **CLI Long:** ***--extension-patterns***\
-  **CLI Short:** ***-p***
+  **命令行长选项:** ***--extension-patterns***\
+  **命令行短选项:** ***-p***
 
-  Specify extension patterns for file detecting separated by comma.
+  以逗号分隔指定用于识别文件的扩展名规则。
 
 - **animation**
 
   - **blend-override**
 
-    **CLI Long:** ***--blend-override***\
-    **CLI Short:** ***-b***
+    **命令行长选项:** ***--blend-override***\
+    **命令行短选项:** ***-b***
 
-    **Default value:** AUTO
+    **默认值:** AUTO
 
-    **Valid values:** AUTO, NORMAL, ADDITIVE_DEPRECATED, ADDITIVE
+    **可选值:** AUTO, NORMAL, ADDITIVE_DEPRECATED, ADDITIVE
 
-    Override blend hint.
+    覆盖混合提示。
 
   - **sample-rate**
 
-    **CLI Long:** ***--sample-rate***\
-    **CLI Short:** ***-r***
+    **命令行长选项:** ***--sample-rate***\
+    **命令行短选项:** ***-r***
 
-    **Default value:** 60
+    **默认值:** 60
 
-    Specify frames per second for GLTF.
+    指定 GLTF 的每秒帧数。
 
   - **scale-type**
 
-    **CLI Long:** ***--scale-type***\
-    **CLI Short:** ***-S***
+    **命令行长选项:** ***--scale-type***\
+    **命令行短选项:** ***-S***
 
-    **Default value:** NONE
+    **默认值:** NONE
 
-    **Valid values:**
+    **可选值:**
 
-    - NONE: Ignore scale tracks.
+    - NONE: 忽略缩放轨道。
 
     - INDEPENDENT:
-    Input scale tracks does not affect child nodes positions.
-    They also doesn't introduce shearing like in MATRICIAL case.
+    输入的缩放轨道不影响子节点位置，
+    也不会像 MATRICIAL 模式那样引入切变。
 
-    Select desired processing mode for node scale tracks.
+    选择节点缩放轨道的处理模式。
 
   - **filename-anims**
 
-    **CLI Long:** ***--filename-anims***\
-    **CLI Short:** ***-f***
+    **命令行长选项:** ***--filename-anims***\
+    **命令行短选项:** ***-f***
 
-    **Default value:** false
+    **默认值:** false
 
-    Use filename for unnamed animations instead of Motion[]
+    对未命名动画使用文件名代替 Motion[]
 
 - **skeleton**
 
   - **skeleton-path**
 
-    **CLI Long:** ***--skeleton-path***\
-    **CLI Short:** ***-s***
+    **命令行长选项:** ***--skeleton-path***\
+    **命令行短选项:** ***-s***
 
-    Specify path to a skeleton hkx.
+    指定骨骼 hkx 文件的路径。
 
   - **generation**
 
-    **CLI Long:** ***--generation***\
-    **CLI Short:** ***-G***
+    **命令行长选项:** ***--generation***\
+    **命令行短选项:** ***-G***
 
-    **Default value:** DEFAULT
+    **默认值:** DEFAULT
 
-    **Valid values:**
+    **可选值:**
 
-    - DEFAULT: Do not modify skeleton in any way.
+    - DEFAULT: 不对骨骼做任何修改。
 
-    - AUTO: Automatically detect nodes with children where scale animation might occur.
+    - AUTO: 自动检测带子节点、可能出现缩放动画的节点。
 
-    - MANUAL: Manually select bones (in gen-cbones) where scale motion occurs and have child nodes.
+    - MANUAL: 在 gen-cbones 中手动指定出现缩放运动且带子节点的骨骼。
 
-    Set additional skeleton modifications.
+    设置额外的骨骼修改。
 
   - **gen-cbones**
 
-    **CLI Long:** ***--gen-cbones***\
-    **CLI Short:** ***-B***
+    **命令行长选项:** ***--gen-cbones***\
+    **命令行短选项:** ***-B***
 
-    Comma separated bone names where should be applied scale tracks.
+    以逗号分隔的骨骼名称，缩放轨道将应用到这些骨骼。
 
   - **visualize**
 
-    **CLI Long:** ***--visualize***\
-    **CLI Short:** ***-V***
+    **命令行长选项:** ***--visualize***\
+    **命令行短选项:** ***-V***
 
-    **Default value:** true
+    **默认值:** true
 
-    Create visualization mesh for skeletons. (Enforces armature object for Blender)
+    为骨骼创建可视化网格。（在 Blender 中强制生成骨架对象）
 
   - **create-root-node**
 
-    **CLI Long:** ***--create-root-node***\
-    **CLI Short:** ***-N***
+    **命令行长选项:** ***--create-root-node***\
+    **命令行短选项:** ***-N***
 
-    **Default value:** false
+    **默认值:** false
 
-    Force create root node named after `root-node-name` setting. This node is automatically generated when there is multiple root nodes inside skeleton.(Separates root motion)
+    按 `root-node-name` 设置强制创建根节点。当骨骼内部存在多个根节点时会自动生成该节点。（用于分离根运动）
 
   - **root-node-name**
 
-    **CLI Long:** ***--root-node-name***\
-    **CLI Short:** ***-A***
+    **命令行长选项:** ***--root-node-name***\
+    **命令行短选项:** ***-A***
 
-    **Default value:** {SKELETON_NAME}
+    **默认值:** {SKELETON_NAME}
 
-    When create-root-node is active, generate root node name from specified pattern.
-`{SKELETON_NAME}` will be substitued by actual skeleton name. For example `root_{SKELETON_NAME}_bone` will generate `root_Refernce_bone` (skeleton name is Reference)
+    启用 create-root-node 时，按指定模式生成根节点名称。
+`{SKELETON_NAME}` 会被替换为实际的骨骼名称。例如 `root_{SKELETON_NAME}_bone` 会生成 `root_Refernce_bone`（骨骼名称为 Reference）
 
 - **scene**
 
   - **units**
 
-    **CLI Long:** ***--units***\
-    **CLI Short:** ***-u***
+    **命令行长选项:** ***--units***\
+    **命令行短选项:** ***-u***
 
-    **Default value:** METER
+    **默认值:** METER
 
-    **Valid values:** MM, CM, DM, METER, KM, INCH, FEET, MILE, YARD, CUSTOM
+    **可选值:** MM, CM, DM, METER, KM, INCH, FEET, MILE, YARD, CUSTOM
 
-    Input scene units.
+    输入场景的单位。
 
   - **custom-scale**
 
-    **CLI Long:** ***--custom-scale***\
-    **CLI Short:** ***-C***
+    **命令行长选项:** ***--custom-scale***\
+    **命令行短选项:** ***-C***
 
-    **Default value:** 1
+    **默认值:** 1
 
-    Set unit scale in case of CUSTOM units.
+    使用 CUSTOM 单位时设置单位缩放。
 
   - **up-axis**
 
-    **CLI Long:** ***--up-axis***\
-    **CLI Short:** ***-U***
+    **命令行长选项:** ***--up-axis***\
+    **命令行短选项:** ***-U***
 
-    **Default value:** Y+
+    **默认值:** Y+
 
-    **Valid values:** X-, Y-, Z-, X+, Y+, Z+
+    **可选值:** X-, Y-, Z-, X+, Y+, Z+
 
-    Input scene up axis.
+    输入场景的上轴。
 
   - **forward-axis**
 
-    **CLI Long:** ***--forward-axis***\
-    **CLI Short:** ***-F***
+    **命令行长选项:** ***--forward-axis***\
+    **命令行短选项:** ***-F***
 
-    **Default value:** Z+
+    **默认值:** Z+
 
-    **Valid values:** X-, Y-, Z-, X+, Y+, Z+
+    **可选值:** X-, Y-, Z-, X+, Y+, Z+
 
-    Input scene forward axis.
+    输入场景的前向轴。
 
   - **right-handed**
 
-    **CLI Long:** ***--right-handed***\
-    **CLI Short:** ***-R***
+    **命令行长选项:** ***--right-handed***\
+    **命令行短选项:** ***-R***
 
-    **Default value:** true
+    **默认值:** true
 
-    Input scene uses right handed coordiante system. (Finicky with root motion rotations)
+    输入场景使用右手坐标系。（对根运动旋转比较敏感）
 
-## License
+## 许可
 
-This toolset is available under GPL v3 license. (See LICENSE)\
-This toolset uses following libraries:
+本工具集以 GPL v3 许可发布。（见 LICENSE）\
+本工具集使用了以下库：
 
 - HavokLib, Copyright (c) 2017-2025 Lukas Cone

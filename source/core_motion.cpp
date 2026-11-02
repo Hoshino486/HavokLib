@@ -27,8 +27,8 @@ static Vector4A16 SLerp(const Vector4A16 &v0, const Vector4A16 &_v1, float t) {
   Vector4A16 v1 = _v1;
   float dot = v0.Dot(v1);
 
-  // If the dot product is negative, slerp won't take
-  // the shorter path. Fix by reversing one quaternion.
+  // 如果点积为负，slerp 就不会走较短的那条路径。
+  // 把其中一个四元数取反即可修正。
   if (dot < 0.0f) {
     v1 *= -1;
     dot *= -1;
@@ -36,15 +36,14 @@ static Vector4A16 SLerp(const Vector4A16 &v0, const Vector4A16 &_v1, float t) {
 
   static const float DOT_THRESHOLD = 0.9995f;
   if (dot > DOT_THRESHOLD) {
-    // If the inputs are too close for comfort, linearly interpolate
-    // and normalize the result.
+    // 如果两个输入过于接近，就改用线性插值，再对结果做归一化。
 
     Vector4A16 result = v0 + (v1 - v0) * t;
     return result.Normalize();
   }
 
-  const float theta00 = acos(dot);   // theta00 = angle between input vectors
-  const float theta01 = theta00 * t; // theta01 = angle between v0 and result
+  const float theta00 = acos(dot);   // theta00 = 两个输入向量之间的夹角
+  const float theta01 = theta00 * t; // theta01 = v0 与结果之间的夹角
   const float theta02 = sin(theta01);
   const float theta03 = 1.0f / sin(theta00);
   const float s0 = cos(theta01) - dot * theta02 * theta03;

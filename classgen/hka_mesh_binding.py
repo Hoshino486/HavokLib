@@ -18,7 +18,7 @@ hkaMeshBinding.patches = [
 
 if __name__ == "__main__":
     CLASSES = [hkArray.sub, hkaMeshBinding,]
-    print("// This file has been automatically generated. Do not modify.")
+    print("// 本文件由程序自动生成，请勿手动修改。")
     print('#include "hk_base.inl"')
 
     dump_classes(CLASSES)

@@ -24,7 +24,7 @@ struct hkaInterleavedAnimationInternalInterface
   virtual size_t GetNumFloats() const = 0;
   virtual const hkQTransform *GetTransform(size_t id) const = 0;
   virtual float GetFloat(size_t id) const = 0;
-  // TODO floats
+  // 待实现：浮点版本
   operator hkaInterleavedAnimationInternalInterface const *() const override { return this; }
   operator hkVirtualClass const *() const override { return this; }
   void ToXML(XMLHandle hdl) const override;

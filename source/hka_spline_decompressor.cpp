@@ -137,7 +137,7 @@ Vector4A16 ReadQuat(QuantizationType qType, const char *&buffer) {
   }
 }
 
-// Algorithm A2.1 The NURBS Book 2nd edition, page 68
+// 算法 A2.1，见《The NURBS Book》第二版第 68 页
 int FindKnotSpan(int degree, float value, int cPointsSize,
                  std::span<uint8> &knots) {
   if (value >= knots[cPointsSize])

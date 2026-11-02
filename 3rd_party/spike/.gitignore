@@ -1,0 +1,6 @@
+*.vs*
+build
+lib
+bin/*
+!bin/CMakeLists.txt
+__pycache__/

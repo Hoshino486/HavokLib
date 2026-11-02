@@ -388,7 +388,7 @@ struct GLTFHK : GLTF {
 
     if (controlBones.contains(index)) {
       numChildren--;
-      // The last pushed index is always a scale bone
+      // 最后压入的索引始终是缩放骨
       auto &sBone = nodes.at(cBone.children.back());
       reinterpret_cast<Vector &>(sBone.scale) *=
           reinterpret_cast<const Vector &>(scale);
@@ -1036,7 +1036,7 @@ void AppProcessFile(AppContext *ctx) {
   GLTFHK main;
   main.fileName = ctx->workingFile.GetFilename();
 
-  // Load skeletons
+  // 加载骨骼
   for (auto skel_ : skeletons) {
     auto skel = checked_deref_cast<const hkaSkeleton>(skel_);
     if (skel->GetNumBones()) {
@@ -1044,7 +1044,7 @@ void AppProcessFile(AppContext *ctx) {
     }
   }
 
-  // Animations
+  // 动画
   [&] {
     auto bindings = hkFile->GetClasses(hkaAnimationBinding::GetHash());
     auto anims = hkFile->GetClasses(hkaAnimation::GetHash());

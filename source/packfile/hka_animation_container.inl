@@ -1,4 +1,4 @@
-// This file has been automatically generated. Do not modify.
+// 鏈枃浠剁敱绋嬪簭鑷姩鐢熸垚锛岃鍕挎墜鍔ㄤ慨鏀广€?
 #include "hk_base.inl"
 namespace clgen::hkaAnimationContainer {
 enum Members {

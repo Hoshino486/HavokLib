@@ -125,6 +125,6 @@ def dump_classes(CLASSES):
 if __name__ == "__main__":
     BASE.class_layout_gnu = False
     CLASSES = [hkVariant,hkReferenceObject,]
-    print('// This file has been automatically generated. Do not modify.')
+    print('// 本文件由程序自动生成，请勿手动修改。')
     print('#include "spike/classgen.hpp"')
     dump_classes(CLASSES)

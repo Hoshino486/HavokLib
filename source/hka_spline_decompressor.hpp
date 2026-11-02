@@ -169,7 +169,7 @@ private:
 
 struct hkaSplineDecompressor {
   std::vector<TransformSplineBlock> blocks;
-  // TODO floats
+  // 待实现：浮点版本
   void Assign(hkaSplineCompressedAnimationInternalInterface *input);
 };
 

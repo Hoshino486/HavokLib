@@ -12,7 +12,7 @@ hkaAnimatedReferenceFrame.patches = [
 
 if __name__ == "__main__":
     CLASSES = [hkaAnimatedReferenceFrame,]
-    print("// This file has been automatically generated. Do not modify.")
+    print("// 本文件由程序自动生成，请勿手动修改。")
     print('#pragma once')
     print('#include "hk_base.inl"')
 

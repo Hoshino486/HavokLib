@@ -1,5 +1,6 @@
 
 #include "spike/master_printer.hpp"
+#include "spike/util/i18n.hpp"
 
 #include "hk_core.hpp"
 #include "hk_packfile.hpp"
@@ -21,6 +22,7 @@ static PyModuleDef module{
 };
 
 extern "C" PyObject ES_EXPORT *PyInit_havokpy() {
+  es::i18n::InitFromEnvironment();
   es::print::AddPrinterFunction(es::Print);
   PyObject *m = PyModule_Create(&module);
 

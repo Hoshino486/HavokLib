@@ -22,7 +22,7 @@ if(NOT NO_OBJECTS)
     NO_VERINFO
     NO_PROJECT_H)
 
-    target_compile_options(havok-objects PRIVATE -fvisibility=hidden)
+    target_compile_options(havok-objects PRIVATE ${HK_VISIBILITY_FLAGS})
     target_expose_defs(havok HK_EXPORT HK_IMPORT)
 endif()
 

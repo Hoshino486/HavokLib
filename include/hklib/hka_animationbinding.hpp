@@ -21,7 +21,7 @@
 
 struct hkaAnimation;
 
-// ADDITIVE_DEPRECATED since 2010
+// ADDITIVE_DEPRECATED，自 2010 版起弃用
 MAKE_ENUM(ENUMSCOPE(BlendHint
                     : uint8, BlendHint),
           EMEMBER(NORMAL), EMEMBER(ADDITIVE_DEPRECATED), EMEMBER(ADDITIVE))

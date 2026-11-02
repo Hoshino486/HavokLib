@@ -1,42 +1,41 @@
 <?xml version="1.0"?>
 <toolset_description><![CDATA[
-<h1 align="center">Havok Toolset</h1>
+<h1 align="center">Havok 工具集</h1>
 
 <p align="center">
-    Havok Toolset is a collection of conversion tools under HavokLib.
+    Havok 工具集是 HavokLib 下的一组转换工具。
 </p>
 
 <p align="center">
-    This toolset runs on Spike foundation.
+    本工具集基于 Spike 框架运行。
 </p>
 
 <p align="center">
-    Head to this
-    <b><a href="https://github.com/PredatorCZ/Spike/wiki/Spike">Wiki</a></b>
-    for more information on how to effectively use it.
+    想了解如何高效使用，请看
+    <b><a href="https://github.com/PredatorCZ/Spike/wiki/Spike">Wiki</a></b>。
 </p>
 
 <p align="center">
-<b><a href="https://github.com/PredatorCZ/RevilLib/releases">Latest Release</a></b>
+<b><a href="https://github.com/PredatorCZ/RevilLib/releases">最新发行版</a></b>
 </p>]]>
 
-## Release authenticity
+## 发行版校验
 
-Every release asset will contain corresponding `.sig` file, together with [Sign Key](sign_key.asc) can be used to verify asset via gpg.
+每个发行版资产都附带对应的 `.sig` 文件，配合 [签名公钥](sign_key.asc) 可用 gpg 校验资产。
 
-Simple usage:
+简要用法：
 
 ```bash
-gpg --import sign_key.asc # Required only once
+gpg --import sign_key.asc # 只需执行一次
 gpg --verify &lt;asset_name&gt;.sig
 ```</toolset_description>
-<hk_to_gltf>Converts Havok data into GLTF.
+<hk_to_gltf>把 Havok 数据转换为 GLTF。
 
-Supports animation and skeleton data.</hk_to_gltf>
-<toolset_footer>## License
+支持动画与骨骼数据。</hk_to_gltf>
+<toolset_footer>## 许可
 
-This toolset is available under GPL v3 license. (See LICENSE)\
-This toolset uses following libraries:
+本工具集以 GPL v3 许可发布。（见 LICENSE）\
+本工具集使用了以下库：
 
 - HavokLib, Copyright (c) 2017-2025 Lukas Cone
 </toolset_footer>
